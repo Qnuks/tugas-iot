@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: semai-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    autoDeploy: true

@@ -53,7 +53,7 @@ async function setActuatorState(payload) {
     reason
   });
 
-  const mqtt = mqttService.publishActuatorCommand({
+  const mqtt = await mqttService.publishActuatorCommand({
     deviceCode,
     actuatorType,
     isOn

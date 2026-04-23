@@ -64,7 +64,34 @@ function connectMqtt() {
   });
 }
 
-function publishActuatorCommand({ deviceCode, actuatorType, isOn }) {
+function publishWithClient(activeClient, topic, payload) {
+  return new Promise((resolve, reject) => {
+    activeClient.publish(topic, payload, { qos: 1 }, (error) => {
+      if (error) return reject(error);
+      resolve();
+    });
+  });
+}
+
+function waitForConnect(activeClient, timeoutMs) {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      reject(new Error("MQTT connect timeout"));
+    }, timeoutMs);
+
+    activeClient.once("connect", () => {
+      clearTimeout(timer);
+      resolve();
+    });
+
+    activeClient.once("error", (error) => {
+      clearTimeout(timer);
+      reject(error);
+    });
+  });
+}
+
+async function publishActuatorCommand({ deviceCode, actuatorType, isOn }) {
   if (!config.mqttEnabled) {
     return {
       published: false,
@@ -72,28 +99,44 @@ function publishActuatorCommand({ deviceCode, actuatorType, isOn }) {
     };
   }
 
-  if (!client || !state.connected) {
-    return {
-      published: false,
-      reason: state.lastError || "MQTT bridge belum terkoneksi"
-    };
-  }
-
   const topic = buildControlTopic(deviceCode);
   const payload = normalizeActuatorPayload(actuatorType, isOn);
 
-  client.publish(topic, payload, { qos: 1 }, (error) => {
-    if (error) {
+  if (client && state.connected) {
+    try {
+      await publishWithClient(client, topic, payload);
+      return { published: true, topic, payload, mode: "persistent" };
+    } catch (error) {
       state.lastError = error.message;
-      console.error("[MQTT] Publish gagal:", error.message);
+      return { published: false, reason: error.message, topic, payload };
     }
+  }
+
+  // Serverless-friendly: connect, publish, disconnect (no long-lived socket required)
+  if (!config.mqttBrokerUrl) {
+    return { published: false, reason: "MQTT_BROKER_URL belum diisi.", topic, payload };
+  }
+
+  const tempClient = mqtt.connect(config.mqttBrokerUrl, {
+    username: config.mqttUsername || undefined,
+    password: config.mqttPassword || undefined,
+    reconnectPeriod: 0
   });
 
-  return {
-    published: true,
-    topic,
-    payload
-  };
+  try {
+    await waitForConnect(tempClient, 6000);
+    await publishWithClient(tempClient, topic, payload);
+    tempClient.end(true);
+    return { published: true, topic, payload, mode: "on_demand" };
+  } catch (error) {
+    state.lastError = error.message;
+    try {
+      tempClient.end(true);
+    } catch (_e) {
+      // ignore
+    }
+    return { published: false, reason: error.message, topic, payload };
+  }
 }
 
 function getMqttState() {

@@ -128,7 +128,8 @@ function renderLogin(errorMessage = "") {
             <input class="input" id="password" name="password" type="password" value="${escapeHtml(DEFAULT_PASSWORD)}" required />
           </div>
 
-          
+          <button class="btn btn-primary" type="submit">Login</button>
+          <div class="error-text">${escapeHtml(errorMessage)}</div>
         </form>
       </div>
     </section>

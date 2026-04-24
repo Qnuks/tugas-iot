@@ -128,9 +128,7 @@ function renderLogin(errorMessage = "") {
             <input class="input" id="password" name="password" type="password" value="${escapeHtml(DEFAULT_PASSWORD)}" required />
           </div>
 
-          <button class="btn btn-primary" type="submit">Login</button>
-          <div class="error-text">${escapeHtml(errorMessage)}</div>
-          <div class="helper-text">Gunakan akun backend default atau ganti di file <code>backend/.env</code>.</div>
+          
         </form>
       </div>
     </section>
@@ -254,7 +252,7 @@ function renderDashboard() {
             </div>
           </section>
 
-          <div class="footer-note">Semai IoT dashboard siap dihubungkan ke backend online.</div>
+          <div class="footer-note">Semai IoT dashboard.</div>
         </main>
       </div>
     </section>

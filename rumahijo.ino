@@ -154,11 +154,23 @@ bool deviceRegistered = false;
 unsigned long lastBaca = 0;
 unsigned long lastRegisterAttempt = 0;
 
+static bool isHttpsUrl(const String& url) {
+  return url.startsWith("https://");
+}
+
 int postJson(const String& url, const String& jsonBody, const char* label) {
   if (WiFi.status() != WL_CONNECTED) return -1;
 
   HTTPClient http;
-  http.begin(url);
+
+  if (isHttpsUrl(url)) {
+    WiFiClientSecure secureClient;
+    secureClient.setInsecure();
+    http.begin(secureClient, url);
+  } else {
+    WiFiClient plainClient;
+    http.begin(plainClient, url);
+  }
   http.addHeader("Content-Type", "application/json");
 
   int code = http.POST(jsonBody);
@@ -475,30 +487,32 @@ void kontrolRelay() {
 //  PUBLISH DATA KE MQTT
 // ═══════════════════════════════════════════════════════
 void publishData() {
-  const char* stateLabel[] = { "IDLE", "TRIGGERED", "ON", "COOLDOWN" };
-
-  StaticJsonDocument<512> doc;
+  // Payload diperkecil supaya publish lebih stabil (buffer PubSubClient terbatas).
+  // Backend ingest sudah support key versi temanmu: suhu, kelembapan_udara, tanah, cahaya.
+  StaticJsonDocument<256> doc;
   doc["deviceCode"] = DEVICE_CODE;
-  doc["deviceName"] = DEVICE_NAME;
-  doc["airTemperature"] = serialized(String(suhu, 1));
-  doc["airHumidity"] = serialized(String(humUdara, 1));
-  doc["soilMoisture"] = serialized(String(tanah, 1));
-  doc["lightIntensity"] = serialized(String(cahaya, 1));
-  doc["fanStatus"] = rcKipas.statusOn;
-  doc["pumpStatus"] = rcPompa.statusOn;
-  doc["lampStatus"] = rcLampu.statusOn;
-  doc["fanState"] = stateLabel[rcKipas.state];
-  doc["pumpState"] = stateLabel[rcPompa.state];
-  doc["lampState"] = stateLabel[rcLampu.state];
-  doc["overrideFan"] = overrideKipas;
-  doc["overridePump"] = overridePompa;
-  doc["overrideLamp"] = overrideLampu;
+  doc["suhu"] = serialized(String(suhu, 1));
+  doc["kelembapan_udara"] = serialized(String(humUdara, 1));
+  doc["tanah"] = serialized(String(tanah, 1));
+  doc["cahaya"] = serialized(String(cahaya, 1));
 
   char buffer[512];
   serializeJson(doc, buffer);
 
+  if (!mqttClient.connected()) {
+    Serial.printf("[MQTT] Publish skipped: not connected (state=%d)\n", mqttClient.state());
+    return;
+  }
+
   bool ok = mqttClient.publish(TOPIC_TELEMETRY, buffer);
-  Serial.printf("[MQTT] Publish %s -> %s\n", ok ? "OK" : "GAGAL", buffer);
+  if (!ok) {
+    Serial.printf("[MQTT] Publish GAGAL (state=%d, buf=%u) -> %s\n",
+                  mqttClient.state(),
+                  mqttClient.getBufferSize(),
+                  buffer);
+  } else {
+    Serial.printf("[MQTT] Publish OK -> %s\n", buffer);
+  }
 
   kirimTelemetryKeBackend();
 }
@@ -525,6 +539,8 @@ void setup() {
   espClient.setInsecure();
   mqttClient.setServer(MQTT_SERVER, MQTT_PORT);
   mqttClient.setCallback(mqttCallback);
+  // PubSubClient default buffer sering 256 bytes. Payload JSON telemetry biasanya lebih besar.
+  mqttClient.setBufferSize(512);
   koneksiMQTT();
 
   registerDeviceToBackend();

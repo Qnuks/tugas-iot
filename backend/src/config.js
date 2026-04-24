@@ -31,7 +31,10 @@ const config = {
   mqttPassword: process.env.MQTT_PASSWORD || "",
   mqttControlTopicMode: (process.env.MQTT_CONTROL_TOPIC_MODE || "per_device").toLowerCase(),
   mqttControlTopicPrefix: process.env.MQTT_CONTROL_TOPIC_PREFIX || "smartfarm/control",
-  mqttTelemetryTopic: process.env.MQTT_TELEMETRY_TOPIC || "smartfarm/telemetry"
+  mqttTelemetryTopic: process.env.MQTT_TELEMETRY_TOPIC || "smartfarm/telemetry",
+  mqttTelemetryIngest:
+    String(process.env.MQTT_TELEMETRY_INGEST || "false").toLowerCase() === "true",
+  mqttDefaultDeviceCode: process.env.MQTT_DEFAULT_DEVICE_CODE || "GH-001"
 };
 
 module.exports = config;

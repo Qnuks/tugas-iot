@@ -1,5 +1,6 @@
 const mqtt = require("mqtt");
 const config = require("../config");
+const telemetryService = require("./telemetryService");
 
 let client = null;
 
@@ -8,7 +9,15 @@ const state = {
   connected: false,
   lastError: null,
   brokerUrl: config.mqttBrokerUrl || null,
-  controlTopicPrefix: config.mqttControlTopicPrefix
+  controlTopicPrefix: config.mqttControlTopicPrefix,
+  telemetry: {
+    ingestEnabled: config.mqttTelemetryIngest,
+    topic: config.mqttTelemetryTopic,
+    lastMessageAt: null,
+    lastIngestAt: null,
+    lastIngestError: null,
+    lastPayloadPreview: null
+  }
 };
 
 function buildControlTopic(deviceCode) {
@@ -49,6 +58,16 @@ function connectMqtt() {
     state.connected = true;
     state.lastError = null;
     console.log("[MQTT] Bridge terhubung ke broker.");
+
+    if (config.mqttTelemetryIngest) {
+      client.subscribe(config.mqttTelemetryTopic, { qos: 0 }, (error) => {
+        if (error) {
+          console.error("[MQTT] Subscribe telemetry gagal:", error.message);
+        } else {
+          console.log(`[MQTT] Subscribe telemetry: ${config.mqttTelemetryTopic}`);
+        }
+      });
+    }
   });
 
   client.on("reconnect", () => {
@@ -65,6 +84,46 @@ function connectMqtt() {
   client.on("close", () => {
     state.connected = false;
     console.log("[MQTT] Bridge terputus.");
+  });
+
+  client.on("message", async (topic, message) => {
+    if (!config.mqttTelemetryIngest) return;
+    if (topic !== config.mqttTelemetryTopic) return;
+
+    try {
+      const text = message.toString("utf8");
+      state.telemetry.lastMessageAt = new Date().toISOString();
+      state.telemetry.lastPayloadPreview = text.length > 500 ? `${text.slice(0, 500)}...` : text;
+      const doc = JSON.parse(text);
+
+      const deviceCode = String(doc.deviceCode || config.mqttDefaultDeviceCode);
+
+      // Support payload dari temanmu: suhu, kelembapan_udara, tanah, cahaya
+      // Support payload dari firmware kita: airTemperature, airHumidity, soilMoisture, lightIntensity
+      const soilMoisture = doc.soilMoisture ?? doc.tanah ?? null;
+      const airTemperature = doc.airTemperature ?? doc.suhu ?? null;
+      const airHumidity = doc.airHumidity ?? doc.kelembapan_udara ?? null;
+      const lightIntensity = doc.lightIntensity ?? doc.cahaya ?? null;
+
+      const toNumberOrNull = (value) => {
+        if (value === null || value === undefined || value === "") return null;
+        const parsed = Number(value);
+        return Number.isNaN(parsed) ? null : parsed;
+      };
+
+      await telemetryService.ingestTelemetry({
+        deviceCode,
+        soilMoisture: toNumberOrNull(soilMoisture),
+        airTemperature: toNumberOrNull(airTemperature),
+        airHumidity: toNumberOrNull(airHumidity),
+        lightIntensity: toNumberOrNull(lightIntensity)
+      });
+      state.telemetry.lastIngestAt = new Date().toISOString();
+      state.telemetry.lastIngestError = null;
+    } catch (error) {
+      state.telemetry.lastIngestError = error.message;
+      console.error("[MQTT] Telemetry ingest error:", error.message);
+    }
   });
 }
 

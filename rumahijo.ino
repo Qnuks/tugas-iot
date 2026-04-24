@@ -48,7 +48,7 @@ const char* TOPIC_CONTROL = "smartfarm/control/GH-001";
 
 
 // Backend API
-const char* API_BASE_URL = "https://allowed-draws-vault-impression.trycloudflare.com";
+const char* API_BASE_URL = "https://semai-backend.onrender.com";
 const char* API_DEVICE_PATH = "/api/devices";
 const char* API_TELEMETRY_PATH = "/api/telemetry";
 

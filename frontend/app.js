@@ -340,10 +340,14 @@ async function handleActuatorToggle(event) {
       body: JSON.stringify({
         deviceCode: "GH-001",
         actuatorType,
-        mode: "manual",
+        // Saat switch ON: manual override ON
+        // Saat switch OFF: matikan override dan kembalikan ke AUTO
+        mode: isOn ? "manual" : "auto",
         isOn,
         source: "frontend",
-        reason: "Manual override dari dashboard web"
+        reason: isOn
+          ? "Manual override ON dari dashboard web"
+          : "Manual override OFF, kembali ke AUTO"
       })
     });
 

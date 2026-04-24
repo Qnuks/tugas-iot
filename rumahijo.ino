@@ -28,7 +28,7 @@
 
 // WiFi
 const char* WIFI_SSID = "PASTE_WIFI_SSID";
-const char* WIFI_PASSWORD = "PASTE_WIFI_PASSWORD";
+const char* WIFI_PASSWORD = "";
 
 // Device identity
 const char* DEVICE_CODE = "GH-001";
@@ -39,8 +39,8 @@ const char* DEVICE_NAME = "SEMAI Greenhouse 1";
 const char* MQTT_SERVER = "24b895516e3c41819461709cadb10f17.s1.eu.hivemq.cloud";
 const int MQTT_PORT = 8883;
 const char* MQTT_CLIENT_ID = "semai-gh-001";
-const char* MQTT_USER = "hivemq.webclient.1776926566936";
-const char* MQTT_PASSWORD = "BYfP3h29>6Diy&cT*S#b";
+const char* MQTT_USER = "Semaiiot";
+const char* MQTT_PASSWORD = "Semai123";
 
 // MQTT topics
 const char* TOPIC_TELEMETRY = "smartfarm/telemetry";

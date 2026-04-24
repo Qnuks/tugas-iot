@@ -33,6 +33,13 @@ smartfarm/control/GH-001
 
 Backend akan publish command control ke topic ini jika `deviceCode` adalah `GH-001`.
 
+Jika firmware ESP32 subscribe topic tunggal `smartfarm/control`, set di backend:
+
+```text
+MQTT_CONTROL_TOPIC_MODE=single
+MQTT_CONTROL_TOPIC_PREFIX=smartfarm/control
+```
+
 ## Payload control dari backend ke ESP32
 
 ### Fan

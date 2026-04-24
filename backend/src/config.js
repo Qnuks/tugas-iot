@@ -29,6 +29,7 @@ const config = {
   mqttBrokerUrl: process.env.MQTT_BROKER_URL || "",
   mqttUsername: process.env.MQTT_USERNAME || "",
   mqttPassword: process.env.MQTT_PASSWORD || "",
+  mqttControlTopicMode: (process.env.MQTT_CONTROL_TOPIC_MODE || "per_device").toLowerCase(),
   mqttControlTopicPrefix: process.env.MQTT_CONTROL_TOPIC_PREFIX || "smartfarm/control",
   mqttTelemetryTopic: process.env.MQTT_TELEMETRY_TOPIC || "smartfarm/telemetry"
 };

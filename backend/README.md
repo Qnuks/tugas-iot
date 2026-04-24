@@ -86,6 +86,7 @@ MQTT_ENABLED=true
 MQTT_BROKER_URL=mqtts://your-cluster.s1.eu.hivemq.cloud:8883
 MQTT_USERNAME=your-mqtt-username
 MQTT_PASSWORD=your-mqtt-password
+MQTT_CONTROL_TOPIC_MODE=per_device
 MQTT_CONTROL_TOPIC_PREFIX=smartfarm/control
 MQTT_TELEMETRY_TOPIC=smartfarm/telemetry
 ```
@@ -229,7 +230,8 @@ Contoh body:
 
 Jika MQTT bridge aktif, endpoint ini juga akan publish command ke topic:
 
-`smartfarm/control/<deviceCode>`
+- Mode default (`MQTT_CONTROL_TOPIC_MODE=per_device`): `smartfarm/control/<deviceCode>`
+- Mode single topic (`MQTT_CONTROL_TOPIC_MODE=single`): `smartfarm/control`
 
 ### Rules
 

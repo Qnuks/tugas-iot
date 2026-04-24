@@ -12,6 +12,10 @@ const state = {
 };
 
 function buildControlTopic(deviceCode) {
+  if (config.mqttControlTopicMode === "single") {
+    return config.mqttControlTopicPrefix;
+  }
+
   return `${config.mqttControlTopicPrefix}/${deviceCode}`;
 }
 

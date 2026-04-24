@@ -27,30 +27,33 @@
 // ─────────────────────────────────────────────
 
 // WiFi
-const char* WIFI_SSID = "";
-const char* WIFI_PASSWORD = "";
+const char* WIFI_SSID = "PASTE_WIFI_SSID";
+const char* WIFI_PASSWORD = "PASTE_WIFI_PASSWORD";
 
 // Device identity
 const char* DEVICE_CODE = "GH-001";
 const char* DEVICE_NAME = "SEMAI Greenhouse 1";
 
-// MQTT broker
-const char* MQTT_SERVER = "";
+// MQTT broker (HiveMQ Cloud)
+
+const char* MQTT_SERVER = "24b895516e3c41819461709cadb10f17.s1.eu.hivemq.cloud";
 const int MQTT_PORT = 8883;
 const char* MQTT_CLIENT_ID = "semai-gh-001";
-const char* MQTT_USER = "";
-const char* MQTT_PASSWORD = "";
+const char* MQTT_USER = "hivemq.webclient.1776926566936";
+const char* MQTT_PASSWORD = "BYfP3h29>6Diy&cT*S#b";
 
 // MQTT topics
 const char* TOPIC_TELEMETRY = "smartfarm/telemetry";
 const char* TOPIC_CONTROL = "smartfarm/control/GH-001";
 
+
 // Backend API
-const char* API_BASE_URL = "http://192.168.1.10:3000";
+const char* API_BASE_URL = "https://allowed-draws-vault-impression.trycloudflare.com";
 const char* API_DEVICE_PATH = "/api/devices";
 const char* API_TELEMETRY_PATH = "/api/telemetry";
 
-// Telegram
+// Telegram (opsional)
+// Jangan hardcode token/chat id di file yang dibagikan. Kalau tidak dipakai, biarkan placeholder.
 const char* TG_TOKEN = "8610550586:AAFvo3WEyFyWFYkCbKoa-LClKdjyjEx3uck";
 const char* TG_CHAT_ID = "-5005126586";
 
